@@ -5,5 +5,7 @@ export interface UserTasks {
 
 export interface User {
   fullName: string;
-  tasks: UserTasks[];
+  createdAt: Date;
+  status: string;
+  tasks?: UserTasks[];
 }

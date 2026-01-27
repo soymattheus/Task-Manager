@@ -1,20 +1,49 @@
+"use client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import UserDataPieChart from "./pieChart";
 import UserDataRadarChart from "./radarChart";
 import { StatusCard } from "@/components/status-card";
 import { User } from "@/types/user";
+import React from "react";
+import { toast } from "sonner";
 
 export default function Dashboard() {
-  const user: User = {
-    fullName: "Matheus Tavares",
-    tasks: [
-      { label: "Not Started", value: 3 },
-      { label: "Started", value: 1 },
-      { label: "Completed", value: 7 },
-      { label: "Canceled", value: 2 },
-    ],
+  const [isLoadind, setIsLoading] = React.useState<boolean>(false);
+  const [user, setUser] = React.useState<User | undefined>();
+
+  const handleConsult = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/dashboard", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const statusCode = response.status;
+
+      if (statusCode === 200) {
+        toast.success("Success!");
+        const data = await response.json();
+
+        if (data.createdAt) {
+          data.createdAt = new Date(data.createdAt);
+        }
+
+        setUser(data);
+      } else {
+        toast.error(response.statusText);
+      }
+      setIsLoading(false);
+    } catch {
+      setIsLoading(false);
+      toast.error("Internal server error");
+    }
   };
+
+  React.useEffect(() => {
+    handleConsult();
+  }, []);
 
   return (
     <SidebarProvider>
@@ -36,13 +65,14 @@ export default function Dashboard() {
           </p>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-            {user?.tasks.map((task) => (
-              <StatusCard
-                key={task.label}
-                label={task.label}
-                value={task.value}
-              />
-            ))}
+            {user?.tasks &&
+              user?.tasks.map((task) => (
+                <StatusCard
+                  key={task.label}
+                  label={task.label}
+                  value={task.value}
+                />
+              ))}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -50,14 +80,14 @@ export default function Dashboard() {
               <h3 className="mb-3 text-sm font-medium text-gray-600">
                 Tasks by Status
               </h3>
-              <UserDataPieChart data={user?.tasks} />
+              <UserDataPieChart data={user?.tasks || []} />
             </div>
 
             <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition">
               <h3 className="mb-3 text-sm font-medium text-gray-600">
                 User Performance
               </h3>
-              <UserDataRadarChart data={user?.tasks} />
+              <UserDataRadarChart data={user?.tasks || []} />
             </div>
           </div>
         </main>
