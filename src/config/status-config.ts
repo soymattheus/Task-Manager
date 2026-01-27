@@ -1,4 +1,5 @@
 // status-config.ts
+import { TaskStatus } from "@/types/task";
 import { Clock, PlayCircle, CheckCircle2, XCircle } from "lucide-react";
 
 export const STATUS_CONFIG = {
@@ -33,5 +34,30 @@ export const STATUS_CONFIG = {
       title: "text-red-700",
       description: "text-red-600",
     },
+  },
+};
+
+export const STATUS_STYLES: Record<
+  TaskStatus,
+  {
+    column: string;
+    card: string;
+  }
+> = {
+  "Not Started": {
+    column: "bg-gray-50 border-gray-300",
+    card: "border-gray-300",
+  },
+  Started: {
+    column: "bg-blue-50 border-blue-300",
+    card: "border-blue-300",
+  },
+  Completed: {
+    column: "bg-green-50 border-green-300",
+    card: "border-green-300",
+  },
+  Canceled: {
+    column: "bg-red-50 border-red-300",
+    card: "border-red-300",
   },
 };
