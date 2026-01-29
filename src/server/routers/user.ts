@@ -1,7 +1,7 @@
 import { router, publicProcedure } from "../trpc";
-import { usersTable, tasksTable } from "../trpc/database/schema";
+import { usersTable, tasksTable } from "../database/schema";
 import { eq, sql } from "drizzle-orm";
-import { db } from "../trpc/database/db";
+import { db } from "../database/db";
 
 export const userRouter = router({
   getAll: publicProcedure.query(async () => {

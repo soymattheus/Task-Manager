@@ -1,5 +1,8 @@
 "use client";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
+import React from "react";
+import { toast } from "sonner";
+import { trpc } from "@/utils/trpc";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Table,
@@ -10,16 +13,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User } from "@/types/user";
-import React from "react";
-import { toast } from "sonner";
-import { trpc } from "@/utils/trpc";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
 import UsersTableSkeleton from "./loding";
 
 export default function Users() {
-  // const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  // const [users, setUsers] = React.useState<User[]>([]);
-
   const { data: users, isLoading, isSuccess } = trpc.user.getAll.useQuery();
 
   if (isLoading)

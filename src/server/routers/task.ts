@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
-import { tasksTable } from "@/server/trpc/database/schema";
-import { db } from "../trpc/database/db";
+import { tasksTable } from "@/server/database/schema";
+import { db } from "../database/db";
 import { eq } from "drizzle-orm";
 
 export const taskRouter = router({

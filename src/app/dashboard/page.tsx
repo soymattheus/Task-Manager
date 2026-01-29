@@ -1,15 +1,15 @@
 "use client";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import UserDataPieChart from "./pieChart";
-import UserDataRadarChart from "./radarChart";
-import { StatusCard } from "@/components/status-card";
-import { User } from "@/types/user";
+
 import React from "react";
 import { toast } from "sonner";
-
 import { trpc } from "@/utils/trpc";
+import { StatusCard } from "@/components/status-card";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
 import DashboardSkeleton from "./loading";
+import UserDataPieChart from "./pieChart";
+import UserDataRadarChart from "./radarChart";
 
 export default function Dashboard() {
   const { data, isLoading, isSuccess, isError } =
