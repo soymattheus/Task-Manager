@@ -1,6 +1,12 @@
 "use client";
 
-import { UsersRound, LayoutDashboard, ListTodo, ListCheck } from "lucide-react";
+import {
+  UsersRound,
+  LayoutDashboard,
+  ListTodo,
+  ListCheck,
+  LogOut,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import {
@@ -14,6 +20,9 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+
+import { signOut } from "@/utils/auth-client";
+import { useRouter } from "next/navigation";
 
 const items = [
   {
@@ -35,6 +44,17 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleLogout() {
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.replace("/");
+        },
+      },
+    });
+  }
   return (
     <Sidebar>
       <SidebarContent>
@@ -64,6 +84,17 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {/* 🔴 Logout */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={handleLogout}
+                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                >
+                  <LogOut />
+                  <span>Logout</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
