@@ -12,103 +12,84 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 import { STATUS_STYLES } from "@/config/status-config";
+import { trpc } from "@/utils/trpc";
+
+const statuses: TaskStatus[] = [
+  "Not Started",
+  "Started",
+  "Completed",
+  "Canceled",
+];
 
 export default function Tasks() {
-  const [tasks, setTasks] = React.useState<Task[]>();
+  const [data, setData] = React.useState<Task[] | undefined>();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editingTask, setEditingTask] = React.useState<Task>();
+  const utils = trpc.useUtils();
 
-  const statuses: TaskStatus[] = [
-    "Not Started",
-    "Started",
-    "Completed",
-    "Canceled",
-  ];
+  const { data: tasks, isLoading } = trpc.task.getAll.useQuery();
 
-  async function fetchTasks() {
-    try {
-      const response = await fetch("/api/task");
-
-      if (!response.ok) {
-        toast.error("Failed to fetch tasks");
-      }
-
-      const data: Task[] = await response.json();
-      setTasks(data);
-    } catch {
-      toast.error("Failed to fetch tasks");
+  React.useEffect(() => {
+    if (!isLoading) {
+      setData(tasks);
     }
-  }
+  }, [isLoading, tasks]);
 
-  async function handleDelete(id_task: string) {
-    try {
-      const response = await fetch("/api/task", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id_task }),
-      });
-
-      if (!response.ok) {
-        toast.error("Failed to delete task");
-      }
-
-      setTasks(
-        (prev) => prev && prev.filter((task) => task.id_task !== id_task),
+  const createTask = trpc.task.create.useMutation({
+    onSuccess: (newTask) => {
+      utils.task.getAll.invalidate();
+      utils.task.getAll.setData(undefined, (old) =>
+        old ? [...old, newTask] : [newTask],
       );
-    } catch {
-      toast.error("Failed to delete task");
-    }
-  }
+      toast.success("Task created successfully.");
+    },
+    onError: () => {
+      toast.error("Failed to create task.");
+    },
+  });
+
+  const updateTask = trpc.task.update.useMutation({
+    onSuccess: (task) => {
+      utils.task.getAll.invalidate();
+      utils.task.getAll.setData(undefined, (old) => {
+        return old ? [...old, task] : [task];
+      });
+      toast.success("Task updated successfully.");
+    },
+    onError: () => {
+      toast.error("Failed to update task.");
+    },
+  });
+
+  const deleteTask = trpc.task.delete.useMutation({
+    onSuccess: (deletedTask) => {
+      utils.task.getAll.setData(undefined, (old) => {
+        if (!old) return old;
+
+        return old.filter((task) => task.idTask !== deletedTask.idTask);
+      });
+    },
+  });
 
   async function handleSave(data: Omit<Task, "id_task">) {
     try {
       if (editingTask) {
         // UPDATE
-        const response = await fetch("/api/task", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id_task: editingTask.id_task,
-            ...data,
-          }),
+        await updateTask.mutateAsync({
+          idTask: editingTask.idTask,
+          title: data.title,
+          description: data.description,
+          status: data.status,
+          idUser: 1,
         });
-
-        if (!response.ok) {
-          toast.error("Failed to update task.");
-        }
-
-        const updatedTask: Task = await response.json();
-
-        setTasks((prev) =>
-          prev
-            ? prev.map((task) =>
-                task.id_task === updatedTask.id_task ? updatedTask : task,
-              )
-            : [updatedTask],
-        );
-        toast.success("Task updated successfully.");
       } else {
         // CREATE
-        const response = await fetch("/api/task", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
+        await createTask.mutateAsync({
+          title: data.title,
+          description: data.description,
+          status: data.status,
+          idUser: 1,
         });
-
-        if (!response.ok) {
-          toast.error("Failed to create task.");
-        }
-
-        const newTask: Task = await response.json();
-
-        setTasks((prev) => [...(prev || []), newTask]);
-        toast.success("Task created successfully.");
       }
 
       setModalOpen(false);
@@ -117,10 +98,6 @@ export default function Tasks() {
       toast.error("Internal server error.");
     }
   }
-
-  React.useEffect(() => {
-    fetchTasks();
-  }, []);
 
   return (
     <SidebarProvider>
@@ -148,18 +125,20 @@ export default function Tasks() {
                 </CardHeader>
 
                 <div className="space-y-3 p-3">
-                  {tasks &&
-                    tasks
-                      .filter((task) => task.status === status)
-                      .map((task) => (
+                  {data &&
+                    data
+                      .filter((task: Task) => task.status === status)
+                      .map((task: Task) => (
                         <TaskCard
-                          key={task.id_task}
+                          key={task.idTask}
                           task={task}
                           onEdit={(task) => {
                             setEditingTask(task);
                             setModalOpen(true);
                           }}
-                          onDelete={handleDelete}
+                          onDelete={() =>
+                            deleteTask.mutate({ idTask: task.idTask })
+                          }
                         />
                       ))}
                 </div>
