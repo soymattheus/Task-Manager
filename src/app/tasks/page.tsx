@@ -25,7 +25,6 @@ const statuses: TaskStatus[] = [
 export default function Tasks() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editingTask, setEditingTask] = React.useState<Task>();
-  const utils = trpc.useUtils();
 
   const {
     data: tasks,
@@ -36,7 +35,6 @@ export default function Tasks() {
 
   const createTask = trpc.task.create.useMutation({
     onSuccess: async () => {
-      // utils.task.getAll.invalidate();
       toast.success("Task created successfully.");
       await refetch();
       setModalOpen(false);
@@ -49,7 +47,6 @@ export default function Tasks() {
 
   const updateTask = trpc.task.update.useMutation({
     onSuccess: async () => {
-      // utils.task.getAll.invalidate();
       toast.success("Task updated successfully.");
       await refetch();
       setModalOpen(false);

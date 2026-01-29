@@ -1,12 +1,15 @@
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardSkeleton() {
   return (
     <section className="flex w-full flex-col">
       {/* Header */}
-      <header className="flex w-full items-center justify-between border-b border-gray-300 p-4">
-        <Skeleton className="h-8 w-8 md:hidden" />
-        <Skeleton className="h-6 w-64" />
+      <header className="flex flex-row w-full p-4 justify-between border-b border-gray-300">
+        <SidebarTrigger className="md:hidden" />
+        <p className="font-semibold text-[16px]">
+          Visualize your data in an organized way
+        </p>
       </header>
 
       {/* Main */}

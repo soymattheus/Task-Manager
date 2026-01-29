@@ -4,6 +4,11 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "../trpc/database/db";
 
 export const userRouter = router({
+  getAll: publicProcedure.query(async () => {
+    const users = await db.select().from(usersTable);
+    return users;
+  }),
+
   getProfile: publicProcedure.query(async () => {
     const userId = 1; // depois vem do auth
 

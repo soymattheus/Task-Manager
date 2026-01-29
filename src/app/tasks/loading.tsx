@@ -1,13 +1,14 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function TasksSkeleton() {
   return (
     <section className="flex w-full flex-col">
       {/* Header */}
-      <header className="flex w-full flex-row items-center justify-between border-b border-gray-300 p-4">
-        <Skeleton className="h-8 w-8 md:hidden" />
-        <Skeleton className="h-6 w-40" />
+      <header className="flex flex-row w-full p-4 justify-between border-b border-gray-300">
+        <SidebarTrigger className="md:hidden" />
+        <p className="font-semibold text-[16px]">View your task list</p>
       </header>
 
       <main className="flex flex-col p-4">
