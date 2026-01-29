@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-import { toast } from "sonner";
 import { trpc } from "@/utils/trpc";
 import { StatusCard } from "@/components/status-card";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -15,19 +13,25 @@ export default function Dashboard() {
   const { data, isLoading, isSuccess, isError } =
     trpc.user.getProfile.useQuery();
 
-  if (isLoading)
-    return (
-      <SidebarProvider>
-        <AppSidebar />
-        <DashboardSkeleton />
-      </SidebarProvider>
-    );
+  if (isLoading) return <DashboardSkeleton />;
 
   if (isError)
     return (
       <SidebarProvider>
         <AppSidebar />
-        <section className="flex justify-center items-center mx-auto my-auto"></section>
+        <section className="flex flex-col w-full">
+          <header className="flex flex-row w-full p-4 justify-between border-b border-gray-300">
+            <SidebarTrigger className="md:hidden" />
+            <p className="font-semibold text-[16px]">
+              Visualize your data in an organized way
+            </p>
+          </header>
+          <main className="flex flex-col w-fit justify-center items-center my-auto mx-auto bg-red-500 p-4 rounded">
+            <h1 className="mx-auto font-extrabold text-4xl">
+              An error has occurred
+            </h1>
+          </main>
+        </section>
       </SidebarProvider>
     );
 
@@ -44,7 +48,7 @@ export default function Dashboard() {
           </header>
           <main className="flex flex-col p-4 gap-3">
             <h1 className="text-[16px]">
-              Hello, <span className="font-bold">{data?.fullName}</span>
+              Hello, <span className="font-bold">{data?.name}</span>
             </h1>
             <p>
               Here are some of your numbers in the <span>Task Manager</span>{" "}

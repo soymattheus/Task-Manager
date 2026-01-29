@@ -1,4 +1,4 @@
 import { InferSelectModel } from "drizzle-orm";
-import { tasksTable } from "./schema";
+import { tasks } from "./schema";
 
-export type Task = InferSelectModel<typeof tasksTable>;
+export type Task = InferSelectModel<typeof tasks>;

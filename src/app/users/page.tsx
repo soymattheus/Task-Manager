@@ -15,16 +15,35 @@ import {
 } from "@/components/ui/table";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
-import UsersTableSkeleton from "./loding";
+import UserSkeleton from "./loding";
 
 export default function Users() {
-  const { data: users, isLoading, isSuccess } = trpc.user.getAll.useQuery();
+  const {
+    data: users,
+    isLoading,
+    isSuccess,
+    isError,
+  } = trpc.user.getAll.useQuery();
 
-  if (isLoading)
+  if (isLoading) return <UserSkeleton />;
+
+  if (isError)
     return (
       <SidebarProvider>
         <AppSidebar />
-        <UsersTableSkeleton />
+        <section className="flex flex-col w-full">
+          <header className="flex flex-row w-full p-4 justify-between border-b border-gray-300">
+            <SidebarTrigger className="md:hidden" />
+            <p className="font-semibold text-[16px]">
+              Visualize your data in an organized way
+            </p>
+          </header>
+          <main className="flex flex-col w-fit justify-center items-center my-auto mx-auto bg-red-500 p-4 rounded">
+            <h1 className="mx-auto font-extrabold text-4xl">
+              An error has occurred
+            </h1>
+          </main>
+        </section>
       </SidebarProvider>
     );
 
@@ -46,7 +65,7 @@ export default function Users() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Created At</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>E-mail</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -54,14 +73,12 @@ export default function Users() {
                   users.map((user, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-medium">
-                        {user?.fullName}
+                        {user?.name}
                       </TableCell>
                       <TableCell>
                         {user?.createdAt.toLocaleDateString()}
                       </TableCell>
-                      <TableCell>
-                        {user?.status === "A" ? "Active" : "Inactive"}
-                      </TableCell>
+                      <TableCell>{user?.email}</TableCell>
                     </TableRow>
                   ))}
               </TableBody>

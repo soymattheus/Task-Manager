@@ -1,36 +1,33 @@
 import { router, publicProcedure } from "../trpc";
-import { usersTable, tasksTable } from "../database/schema";
+import { tasks } from "../database/schema";
+import { user } from "../../../auth-schema";
 import { eq, sql } from "drizzle-orm";
 import { db } from "../database/db";
 
 export const userRouter = router({
   getAll: publicProcedure.query(async () => {
-    const users = await db.select().from(usersTable);
+    const users = await db.select().from(user);
     return users;
   }),
 
-  getProfile: publicProcedure.query(async () => {
-    const userId = 1; // depois vem do auth
-
-    // 👤 Buscar usuário
-    const [user] = await db
+  getProfile: publicProcedure.query(async ({ ctx }) => {
+    const [res] = await db
       .select({
-        fullName: usersTable.fullName,
-        createdAt: usersTable.createdAt,
-        status: usersTable.status,
+        name: user.name,
+        createdAt: user.createdAt,
       })
-      .from(usersTable)
-      .where(eq(usersTable.idUser, userId));
+      .from(user)
+      .where(eq(user.id, String(ctx.userId)));
 
     // 📊 Contar tasks por status
     const taskCounts = await db
       .select({
-        status: tasksTable.status,
+        status: tasks.status,
         value: sql<number>`count(*)`,
       })
-      .from(tasksTable)
-      .where(eq(tasksTable.idUser, userId))
-      .groupBy(tasksTable.status);
+      .from(tasks)
+      .where(eq(tasks.id, String(ctx.userId)))
+      .groupBy(tasks.status);
 
     // 🧠 Mapear pro formato do front
     const taskMap: Record<string, number> = {
@@ -45,9 +42,8 @@ export const userRouter = router({
     });
 
     return {
-      fullName: user.fullName,
-      createdAt: user.createdAt.toISOString().split("T")[0],
-      status: user.status,
+      name: res.name,
+      createdAt: res.createdAt.toISOString().split("T")[0],
       tasks: [
         { label: "Not Started", value: taskMap.NOT_STARTED },
         { label: "Started", value: taskMap.STARTED },

@@ -4,8 +4,10 @@ export interface UserTasks {
 }
 
 export interface User {
-  fullName: string;
+  name: string;
   createdAt: Date;
   status: string;
+  email: string;
+  password: string;
   tasks?: UserTasks[];
 }

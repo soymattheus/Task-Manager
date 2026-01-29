@@ -11,6 +11,7 @@ import { Eye, EyeOff, ListCheck } from "lucide-react";
 import React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "@/utils/auth-client";
 
 const loginSchema = z.object({
   email: z.email("Enter a valid email address.."),
@@ -35,8 +36,21 @@ export default function Home() {
 
   async function onLogin(payload: LoginSchema) {
     setIsLoading(true);
-    console.log(payload);
-    setIsLoading(false);
+    await signIn.email({
+      email: payload.email,
+      password: payload.password,
+      fetchOptions: {
+        onRequest: () => {
+          setIsLoading(true);
+        },
+        onResponse: () => {
+          setIsLoading(false);
+        },
+        onSuccess: () => {
+          router.replace("/dashboard");
+        },
+      },
+    });
   }
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-between bg-white font-sans">

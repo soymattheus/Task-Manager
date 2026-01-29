@@ -1,13 +1,16 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
-import { tasksTable } from "@/server/database/schema";
+import { tasks } from "@/server/database/schema";
 import { db } from "../database/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export const taskRouter = router({
-  getAll: publicProcedure.query(async () => {
-    const tasks = await db.select().from(tasksTable);
-    return tasks;
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    const res = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, String(ctx.userId)));
+    return res;
   }),
 
   create: publicProcedure
@@ -16,17 +19,16 @@ export const taskRouter = router({
         title: z.string().min(1),
         description: z.string().min(1),
         status: z.string().min(1).max(20),
-        idUser: z.number(),
       }),
     )
-    .mutation(async ({ input }) => {
-      const [task] = await db
-        .insert(tasksTable)
+    .mutation(async ({ ctx, input }) => {
+      const [task] = await ctx.db
+        .insert(tasks)
         .values({
           title: input.title,
           description: input.description,
           status: input.status,
-          idUser: input.idUser,
+          id: String(ctx.userId),
         })
         .returning();
 
@@ -40,19 +42,19 @@ export const taskRouter = router({
         title: z.string().min(1),
         description: z.string().min(1),
         status: z.string().min(1).max(20),
-        idUser: z.number(),
       }),
     )
-    .mutation(async ({ input }) => {
-      const [updatedTask] = await db
-        .update(tasksTable)
+    .mutation(async ({ ctx, input }) => {
+      const [updatedTask] = await ctx.db
+        .update(tasks)
         .set({
           title: input.title,
           description: input.description,
           status: input.status,
-          idUser: input.idUser,
         })
-        .where(eq(tasksTable.idTask, input.idTask))
+        .where(
+          and(eq(tasks.idTask, input.idTask), eq(tasks.id, String(ctx.userId))),
+        )
         .returning();
 
       return updatedTask;
@@ -66,8 +68,8 @@ export const taskRouter = router({
     )
     .mutation(async ({ input }) => {
       const [deletedTask] = await db
-        .delete(tasksTable)
-        .where(eq(tasksTable.idTask, input.idTask))
+        .delete(tasks)
+        .where(eq(tasks.idTask, input.idTask))
         .returning();
 
       return deletedTask;

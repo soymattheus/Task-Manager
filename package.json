@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate": "drizzle-kit generate --out migrations-folder --dialect postgresql  --schema src/server/trpc/database/schema.ts"
+    "generate": "drizzle-kit generate --out migrations-folder --dialect postgresql  --schema src/server/database/schema.ts",
+    "generate:auth": "drizzle-kit generate --out migrations-auth-folder --dialect postgresql  --schema ./auth-schema.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -25,6 +26,7 @@
     "@trpc/next": "^11.9.0",
     "@trpc/react-query": "^11.9.0",
     "@trpc/server": "^11.9.0",
+    "better-auth": "^1.4.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

@@ -3,7 +3,7 @@ export interface Task {
   title: string;
   description: string;
   status: string;
-  idUser: number;
+  id: string;
 }
 
 export type TaskStatus = "Not Started" | "Started" | "Completed" | "Canceled";

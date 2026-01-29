@@ -11,6 +11,8 @@ import { Eye, EyeOff, ListCheck } from "lucide-react";
 import React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn, signUp } from "@/utils/auth-client";
+import { toast } from "sonner";
 
 const registerSchema = z
   .object({
@@ -21,7 +23,7 @@ const registerSchema = z
     confirmPassword: z.string("Confirm your password.").min(6, {
       message: "Confirm your password.",
     }),
-    fullName: z
+    name: z
       .string("Enter a valid name.")
       .min(1, "Name is required.")
       .refine((value) => value.trim().split(/\s+/).length >= 2, {
@@ -53,9 +55,26 @@ export default function Register() {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   async function onRegister(payload: RegisterSchema) {
-    setIsLoading(true);
-    console.log(payload);
-    setIsLoading(false);
+    await signUp.email({
+      email: payload.email,
+      password: payload.password,
+      name: payload.name,
+      callbackURL: "/dashboard",
+      fetchOptions: {
+        onResponse: () => {
+          setIsLoading(false);
+        },
+        onRequest: () => {
+          setIsLoading(true);
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message);
+        },
+        onSuccess: () => {
+          router.push("/dashboard");
+        },
+      },
+    });
   }
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-between bg-white font-sans">
@@ -134,16 +153,16 @@ export default function Register() {
           <hr className="border-gray-300" />
 
           {/* Name */}
-          <Field data-invalid={errors.fullName}>
-            <FieldLabel htmlFor="fieldgroup-fullName">Full name</FieldLabel>
+          <Field data-invalid={errors.name}>
+            <FieldLabel htmlFor="fieldgroup-name">Full name</FieldLabel>
             <Input
-              id="fieldgroup-fullName"
+              id="fieldgroup-name"
               type="text"
               placeholder="Type your full name"
               autoComplete="off"
-              {...register("fullName")}
+              {...register("name")}
             />
-            <FieldError>{errors?.fullName?.message}</FieldError>
+            <FieldError>{errors?.name?.message}</FieldError>
           </Field>
 
           <Button disabled={isLoading} type="submit">

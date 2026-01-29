@@ -30,6 +30,7 @@ export default function Tasks() {
     data: tasks,
     isLoading,
     isSuccess,
+    isError,
     refetch,
   } = trpc.task.getAll.useQuery();
 
@@ -72,7 +73,6 @@ export default function Tasks() {
           title: data.title,
           description: data.description,
           status: data.status,
-          idUser: 1,
         });
       } else {
         // CREATE
@@ -80,7 +80,6 @@ export default function Tasks() {
           title: data.title,
           description: data.description,
           status: data.status,
-          idUser: 1,
         });
       }
     } catch {
@@ -88,11 +87,25 @@ export default function Tasks() {
     }
   }
 
-  if (isLoading)
+  if (isLoading) return <TasksSkeleton />;
+
+  if (isError)
     return (
       <SidebarProvider>
         <AppSidebar />
-        <TasksSkeleton />
+        <section className="flex flex-col w-full">
+          <header className="flex flex-row w-full p-4 justify-between border-b border-gray-300">
+            <SidebarTrigger className="md:hidden" />
+            <p className="font-semibold text-[16px]">
+              Visualize your data in an organized way
+            </p>
+          </header>
+          <main className="flex flex-col w-fit justify-center items-center my-auto mx-auto bg-red-500 p-4 rounded">
+            <h1 className="mx-auto font-extrabold text-4xl">
+              An error has occurred
+            </h1>
+          </main>
+        </section>
       </SidebarProvider>
     );
 
