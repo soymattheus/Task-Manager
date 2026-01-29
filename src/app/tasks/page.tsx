@@ -13,6 +13,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 import { STATUS_STYLES } from "@/config/status-config";
 import { trpc } from "@/utils/trpc";
+import TasksSkeleton from "./loading";
 
 const statuses: TaskStatus[] = [
   "Not Started",
@@ -22,26 +23,24 @@ const statuses: TaskStatus[] = [
 ];
 
 export default function Tasks() {
-  const [data, setData] = React.useState<Task[] | undefined>();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editingTask, setEditingTask] = React.useState<Task>();
   const utils = trpc.useUtils();
 
-  const { data: tasks, isLoading } = trpc.task.getAll.useQuery();
-
-  React.useEffect(() => {
-    if (!isLoading) {
-      setData(tasks);
-    }
-  }, [isLoading, tasks]);
+  const {
+    data: tasks,
+    isLoading,
+    isSuccess,
+    refetch,
+  } = trpc.task.getAll.useQuery();
 
   const createTask = trpc.task.create.useMutation({
-    onSuccess: (newTask) => {
-      utils.task.getAll.invalidate();
-      utils.task.getAll.setData(undefined, (old) =>
-        old ? [...old, newTask] : [newTask],
-      );
+    onSuccess: async () => {
+      // utils.task.getAll.invalidate();
       toast.success("Task created successfully.");
+      await refetch();
+      setModalOpen(false);
+      setEditingTask(undefined);
     },
     onError: () => {
       toast.error("Failed to create task.");
@@ -49,12 +48,12 @@ export default function Tasks() {
   });
 
   const updateTask = trpc.task.update.useMutation({
-    onSuccess: (task) => {
-      utils.task.getAll.invalidate();
-      utils.task.getAll.setData(undefined, (old) => {
-        return old ? [...old, task] : [task];
-      });
+    onSuccess: async () => {
+      // utils.task.getAll.invalidate();
       toast.success("Task updated successfully.");
+      await refetch();
+      setModalOpen(false);
+      setEditingTask(undefined);
     },
     onError: () => {
       toast.error("Failed to update task.");
@@ -62,12 +61,8 @@ export default function Tasks() {
   });
 
   const deleteTask = trpc.task.delete.useMutation({
-    onSuccess: (deletedTask) => {
-      utils.task.getAll.setData(undefined, (old) => {
-        if (!old) return old;
-
-        return old.filter((task) => task.idTask !== deletedTask.idTask);
-      });
+    onSuccess: async () => {
+      await refetch();
     },
   });
 
@@ -91,72 +86,78 @@ export default function Tasks() {
           idUser: 1,
         });
       }
-
-      setModalOpen(false);
-      setEditingTask(undefined);
     } catch {
       toast.error("Internal server error.");
     }
   }
 
-  return (
-    <SidebarProvider>
-      <AppSidebar />
-      <section className="flex flex-col w-full">
-        <header className="flex flex-row w-full p-4 justify-between border-b border-gray-300">
-          <SidebarTrigger className="md:hidden" />
-          <p className="font-semibold text-[16px]">View your task list</p>
-        </header>
-        <main className="flex flex-col p-4">
-          <div className="mb-6 flex items-center justify-between">
-            <h1 className="text-xl font-semibold">Tasks</h1>
+  if (isLoading)
+    return (
+      <SidebarProvider>
+        <AppSidebar />
+        <TasksSkeleton />
+      </SidebarProvider>
+    );
 
-            <Button onClick={() => setModalOpen(true)}>+ New Task</Button>
-          </div>
+  if (isSuccess)
+    return (
+      <SidebarProvider>
+        <AppSidebar />
+        <section className="flex flex-col w-full">
+          <header className="flex flex-row w-full p-4 justify-between border-b border-gray-300">
+            <SidebarTrigger className="md:hidden" />
+            <p className="font-semibold text-[16px]">View your task list</p>
+          </header>
+          <main className="flex flex-col p-4">
+            <div className="mb-6 flex items-center justify-between">
+              <h1 className="text-xl font-semibold">Tasks</h1>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-            {statuses.map((status) => (
-              <Card
-                key={status}
-                className={`border ${STATUS_STYLES[status].column}`}
-              >
-                <CardHeader>
-                  <CardTitle className="text-sm">{status}</CardTitle>
-                </CardHeader>
+              <Button onClick={() => setModalOpen(true)}>+ New Task</Button>
+            </div>
 
-                <div className="space-y-3 p-3">
-                  {data &&
-                    data
-                      .filter((task: Task) => task.status === status)
-                      .map((task: Task) => (
-                        <TaskCard
-                          key={task.idTask}
-                          task={task}
-                          onEdit={(task) => {
-                            setEditingTask(task);
-                            setModalOpen(true);
-                          }}
-                          onDelete={() =>
-                            deleteTask.mutate({ idTask: task.idTask })
-                          }
-                        />
-                      ))}
-                </div>
-              </Card>
-            ))}
-          </div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+              {statuses.map((status) => (
+                <Card
+                  key={status}
+                  className={`border ${STATUS_STYLES[status].column}`}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-sm">{status}</CardTitle>
+                  </CardHeader>
 
-          <TaskModal
-            open={modalOpen}
-            onOpenChange={(open) => {
-              setModalOpen(open);
-              if (!open) setEditingTask(undefined);
-            }}
-            initialData={editingTask}
-            onSave={handleSave}
-          />
-        </main>
-      </section>
-    </SidebarProvider>
-  );
+                  <div className="space-y-3 p-3">
+                    {tasks &&
+                      tasks
+                        .filter((task: Task) => task.status === status)
+                        .map((task: Task) => (
+                          <TaskCard
+                            key={task.idTask}
+                            task={task}
+                            onEdit={(task) => {
+                              setEditingTask(task);
+                              setModalOpen(true);
+                            }}
+                            onDelete={() =>
+                              deleteTask.mutate({ idTask: task.idTask })
+                            }
+                          />
+                        ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            <TaskModal
+              open={modalOpen}
+              onOpenChange={(open) => {
+                setModalOpen(open);
+                if (!open) setEditingTask(undefined);
+              }}
+              initialData={editingTask}
+              onSave={handleSave}
+            />
+          </main>
+        </section>
+      </SidebarProvider>
+    );
 }
