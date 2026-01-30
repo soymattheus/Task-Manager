@@ -9,7 +9,7 @@ const pool =
   globalForDb.pool ??
   new Pool({
     connectionString: process.env.DATABASE_URL!,
-    ssl: false, // 🔥 SEMPRE DEV
+    ssl: false,
   });
 
 globalForDb.pool = pool;
