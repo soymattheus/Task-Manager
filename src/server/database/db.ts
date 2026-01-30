@@ -2,27 +2,18 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 const globalForDb = globalThis as typeof globalThis & {
-  pgPool?: Pool;
-  drizzle?: ReturnType<typeof drizzle>;
+  pool?: Pool;
 };
 
 const pool =
-  globalForDb.pgPool ??
+  globalForDb.pool ??
   new Pool({
-    connectionString: process.env.NEXT_PUBLIC_DATABASE_URL,
-    ssl: { rejectUnauthorized: false }, // Railway / Neon / Supabase
+    connectionString: process.env.DATABASE_URL!,
+    ssl: false, // 🔥 SEMPRE DEV
   });
 
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.pgPool = pool;
-}
+globalForDb.pool = pool;
 
-export const db =
-  globalForDb.drizzle ??
-  drizzle(pool, {
-    logger: process.env.NODE_ENV === "development",
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.drizzle = db;
-}
+export const db = drizzle(pool, {
+  logger: true,
+});

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
-import { tasks } from "@/server/database/schema";
+import { tasks } from "@/drizzle/schema/application";
 import { db } from "../database/db";
 import { and, eq } from "drizzle-orm";
 

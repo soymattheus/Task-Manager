@@ -1,6 +1,6 @@
 import { router, publicProcedure } from "../trpc";
-import { tasks } from "../database/schema";
-import { user } from "../../../auth-schema";
+import { tasks } from "@/drizzle/schema/application";
+import { user } from "@/drizzle/schema/auth";
 import { eq, sql } from "drizzle-orm";
 import { db } from "../database/db";
 
